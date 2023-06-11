@@ -23,13 +23,21 @@ namespace UserInterface
 
         #region Fields
         private bool _imageIsSet;
-        private string _downloadUrl;
+        private string _downloadUrl, _imageName;
+        private Sprite _imageSprite = null;
         private CancellationTokenSource _disableCancellation = null;
         #endregion
 
         #region Properties
         public RectTransform RectTransform => _rectTransform;
         public bool ImageIsSet => _imageIsSet;
+        #endregion
+
+        #region Events
+        public delegate void ImageLoaded(Sprite sprite);
+        public delegate void ImageNotLoaded(string url);
+        public event ImageLoaded ImageSelectedAndLoaded;
+        public event ImageNotLoaded ImageSelectedButNotLoaded;
         #endregion
 
         #region MonoBehaviour API
@@ -54,7 +62,15 @@ namespace UserInterface
         #region Button Handlers
         private void OnButtonClick()
         {
+            if (_imageSprite == null)
+            {
+                _disableCancellation.Cancel();
+                ImageSelectedButNotLoaded?.Invoke(_downloadUrl);
 
+                return;
+            }
+
+            ImageSelectedAndLoaded?.Invoke(_imageSprite);
         }
         #endregion
 
@@ -62,6 +78,7 @@ namespace UserInterface
         internal void Init(string url, string imageName)
         {
             _downloadUrl = $"{url}{imageName}";
+            _imageName = imageName;
         }
 
         internal async UniTaskVoid LaunchImageDownload()
@@ -73,8 +90,13 @@ namespace UserInterface
                 .WithCancellation(_disableCancellation.Token);
 
             Texture2D texture = ((DownloadHandlerTexture)request.downloadHandler).texture;
+            request.Dispose();
+
             Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(texture.width / 2, texture.height / 2));
-            _image.overrideSprite = sprite;
+            sprite.name = _imageName;
+            _imageSprite = sprite;
+
+            _image.sprite = _imageSprite;
 
         }
         #endregion

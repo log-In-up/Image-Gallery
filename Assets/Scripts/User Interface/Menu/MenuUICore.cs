@@ -7,15 +7,13 @@ using Utility;
 
 namespace UserInterface
 {
-#if UNITY_EDITOR
-    [DisallowMultipleComponent]
-#endif
-    public sealed class MenuUICore : MonoBehaviour, IProgress<float>
+    public sealed class MenuUICore : SceneUICore, IProgress<float>
     {
         #region Editor Fields
         [SerializeField] private Button _toGallery = null;
         [SerializeField] private GameObject _loadingScreen = null;
         [SerializeField] private GameObject _menuScreen = null;
+        [SerializeField] private GameObject _galleryObjectsHolder = null;
         [SerializeField] private Slider _progressBar = null;
         #endregion
 
@@ -24,9 +22,11 @@ namespace UserInterface
         #endregion
 
         #region MonoBehaviour API
-        private void Awake()
+        protected override void Awake()
         {
-            _galleryObjectsLoader = FindObjectOfType<GalleryObjectsLoader>();            
+            _galleryObjectsLoader = FindOrCreateGalleryObjectsLoader();
+
+            base.Awake();
         }
 
         private void Start()
@@ -36,6 +36,34 @@ namespace UserInterface
             _loadingScreen.SetActive(false);
             _menuScreen.SetActive(true);
         }
+        #endregion
+
+        #region Methods
+        private GalleryObjectsLoader FindOrCreateGalleryObjectsLoader()
+        {
+            GalleryObjectsLoader galleryObjectsLoader = FindObjectOfType<GalleryObjectsLoader>();
+
+            if (galleryObjectsLoader == null)
+            {
+                GameObject imageHolder = Instantiate(_galleryObjectsHolder);
+                DontDestroyOnLoad(imageHolder);
+                imageHolder.GetSafeComponent(out galleryObjectsLoader);
+            }
+
+            return galleryObjectsLoader;
+        }
+        #endregion
+
+        #region Overridden Methods
+        protected internal override void AutorotateSettings()
+        {
+            Screen.autorotateToPortrait = true;
+            Screen.autorotateToPortraitUpsideDown = true;
+            Screen.autorotateToLandscapeLeft = false;
+            Screen.autorotateToLandscapeRight = false;
+        }
+
+        protected internal override void OnClickEscape() { }
         #endregion
 
         #region Button Handlers

@@ -1057,8 +1057,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4a1e3b591600ef4ea26ae1ff69584d8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _camera: {fileID: 519420031}
   _galleryImage: {fileID: 1673436125522846160, guid: 0b3c1dd0264811a49a0a9d0cb064d0db, type: 3}
+  _selectedImageDataHolder: {fileID: 4261962452847187803, guid: 72196dabbb5a92c4797810e933d3bd1b, type: 3}
   _galleryContent: {fileID: 346973439}
   _galleryViewport: {fileID: 765584258}
   _scrollRect: {fileID: 768970452}

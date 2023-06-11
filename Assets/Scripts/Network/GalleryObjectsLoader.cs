@@ -50,10 +50,12 @@ namespace Network
         {
             UnityWebRequest request = await UnityWebRequest.Get(_url)
                 .SendWebRequest()
-                .ToUniTask(progress);
+                .ToUniTask(progress)
+                .AttachExternalCancellation(_disableCancellation.Token);
 
             Regex regex = new Regex("<a href=\".*\">(?<name>.*jpg)</a>");
             MatchCollection matches = regex.Matches(request.downloadHandler.text);
+            request.Dispose();
 
             if (matches.Count == 0)
             {
@@ -73,7 +75,5 @@ namespace Network
             _imageNames = _imageNames.OrderBy(x => int.Parse(Regex.Replace(x, "[^0-9]+", "0"))).ToList();
         }
         #endregion
-
-
     }
 }
