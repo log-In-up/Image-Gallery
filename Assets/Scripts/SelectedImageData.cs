@@ -9,18 +9,19 @@ namespace Data
     public sealed class SelectedImageData : MonoBehaviour
     {
         #region Fields
-        private string _url;
+        private string _url, _name;
         private Sprite _selectedSprite = null;
         #endregion
 
         #region Public Methods
-        internal void SendImageData(Sprite sprite = null, string url = null)
+        internal void SendImageData(string name, string url, Sprite sprite = null)
         {
-            _selectedSprite = sprite;
+            _name = name;
             _url = url;
+            _selectedSprite = sprite;
         }
 
-        internal Tuple<string, Sprite> GetSelectedSprite() => Tuple.Create(_url, _selectedSprite);
+        internal Tuple<string, string, Sprite> GetSelectedSprite() => Tuple.Create(_url, _name, _selectedSprite);
         #endregion
     }
 }

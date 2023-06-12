@@ -19,7 +19,8 @@ namespace Network
         #endregion
 
         #region Fields
-        private List<string> _imageNames = null;
+        private Dictionary<string, Sprite> _imageNames = null;
+        private List<string> _imageKeys = null;
         private CancellationTokenSource _disableCancellation = null;
 
         private const string GROUP_NAME = "name";
@@ -27,7 +28,8 @@ namespace Network
 
         #region Properties
         public string URL => _url;
-        public List<string> ImageNames => _imageNames;
+        public Dictionary<string, Sprite> ImageNames => _imageNames;
+        public List<string> ImageKeys => _imageKeys;
         #endregion
 
         #region MonoBehaviour API
@@ -35,13 +37,15 @@ namespace Network
         {
             DontDestroyOnLoad(this);
 
-            _imageNames = new List<string>();
+            _imageNames = new Dictionary<string, Sprite>();
+            _imageKeys = new List<string>();
             _disableCancellation = new CancellationTokenSource();
         }
 
         private void OnDestroy()
         {
             _disableCancellation.Cancel();
+            _disableCancellation.Dispose();
         }
         #endregion
 
@@ -63,16 +67,19 @@ namespace Network
                 return;
             }
 
-            _imageNames.Clear();
-
             foreach (Match match in matches.Cast<Match>())
             {
                 if (!match.Success) continue;
 
-                _imageNames.Add(match.Groups[GROUP_NAME].Value);
+                string key = match.Groups[GROUP_NAME].Value;
+                if (!_imageNames.ContainsKey(key))
+                {
+                    _imageNames.Add(key, null);
+                }
             }
 
-            _imageNames = _imageNames.OrderBy(x => int.Parse(Regex.Replace(x, "[^0-9]+", "0"))).ToList();
+            _imageNames = _imageNames.OrderBy(x => int.Parse(Regex.Replace(x.Key, "[^0-9]+", "0"))).ToDictionary(obj => obj.Key, obj => obj.Value);
+            _imageKeys = _imageNames.Keys.ToList();
         }
         #endregion
     }

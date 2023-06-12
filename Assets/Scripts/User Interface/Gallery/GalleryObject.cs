@@ -26,6 +26,7 @@ namespace UserInterface
         private string _downloadUrl, _imageName;
         private Sprite _imageSprite = null;
         private CancellationTokenSource _disableCancellation = null;
+        private GalleryObjectsLoader _galleryObjectsLoader = null;
         #endregion
 
         #region Properties
@@ -34,16 +35,13 @@ namespace UserInterface
         #endregion
 
         #region Events
-        public delegate void ImageLoaded(Sprite sprite);
-        public delegate void ImageNotLoaded(string url);
-        public event ImageLoaded ImageSelectedAndLoaded;
-        public event ImageNotLoaded ImageSelectedButNotLoaded;
+        public delegate void ImageLoad(string url, string name, Sprite sprite);
+        public event ImageLoad ImageSelected;
         #endregion
 
         #region MonoBehaviour API
         private void Awake()
         {
-            _imageIsSet = false;
             _disableCancellation = new CancellationTokenSource();
         }
 
@@ -55,30 +53,36 @@ namespace UserInterface
         private void OnDisable()
         {
             _button.onClick.RemoveListener(OnButtonClick);
+
             _disableCancellation.Cancel();
+            _disableCancellation.Dispose();
         }
         #endregion
 
         #region Button Handlers
         private void OnButtonClick()
         {
-            if (_imageSprite == null)
-            {
-                _disableCancellation.Cancel();
-                ImageSelectedButNotLoaded?.Invoke(_downloadUrl);
-
-                return;
-            }
-
-            ImageSelectedAndLoaded?.Invoke(_imageSprite);
+            _disableCancellation.Cancel();
+            ImageSelected?.Invoke(_downloadUrl, _imageName, _imageSprite);
         }
         #endregion
 
         #region Public Methods
-        internal void Init(string url, string imageName)
+        internal void Init(string url, string imageName, GalleryObjectsLoader galleryObjectsLoader)
         {
             _downloadUrl = $"{url}{imageName}";
             _imageName = imageName;
+            _galleryObjectsLoader = galleryObjectsLoader;
+
+            if (_galleryObjectsLoader.ImageNames[_imageName] != null)
+            {
+                _image.sprite = _imageSprite = _galleryObjectsLoader.ImageNames[_imageName];
+                _imageIsSet = true;
+            }
+            else
+            {
+                _imageIsSet = false;
+            }
         }
 
         internal async UniTaskVoid LaunchImageDownload()
@@ -94,10 +98,11 @@ namespace UserInterface
 
             Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(texture.width / 2, texture.height / 2));
             sprite.name = _imageName;
+
+            _galleryObjectsLoader.ImageNames[_imageName] = sprite;
             _imageSprite = sprite;
 
             _image.sprite = _imageSprite;
-
         }
         #endregion
     }

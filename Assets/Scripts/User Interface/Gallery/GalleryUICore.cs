@@ -50,8 +50,7 @@ namespace UserInterface
         {
             foreach (GalleryObject item in _galleryImages)
             {
-                item.ImageSelectedAndLoaded -= ImageSelectedAndLoaded;
-                item.ImageSelectedButNotLoaded -= ImageSelectedButNotLoaded;
+                item.ImageSelected -= ImageSelected;
             }
 
             _scrollRect.onValueChanged.RemoveListener(OnScroll);
@@ -75,20 +74,19 @@ namespace UserInterface
 
         private void InstantiateImages()
         {
-            foreach (string item in _galleryObjectsLoader.ImageNames)
+            foreach (string item in _galleryObjectsLoader.ImageNames.Keys)
             {
                 GameObject image = Instantiate(_galleryImage, _galleryContent);
 
                 image.GetSafeComponent(out GalleryObject component);
-                component.Init(_galleryObjectsLoader.URL, item);
+                component.Init(_galleryObjectsLoader.URL, item, _galleryObjectsLoader);
 
                 _galleryImages.Add(component);
             }
 
             foreach (GalleryObject item in _galleryImages)
             {
-                item.ImageSelectedAndLoaded += ImageSelectedAndLoaded;
-                item.ImageSelectedButNotLoaded += ImageSelectedButNotLoaded;
+                item.ImageSelected += ImageSelected;
             }
 
             Canvas.ForceUpdateCanvases();
@@ -100,8 +98,10 @@ namespace UserInterface
             {
                 if (item.RectTransform.IsVisible(_galleryViewport))
                 {
-                    if (item.ImageIsSet) continue;
-                    item.LaunchImageDownload().Forget();
+                    if (!item.ImageIsSet)
+                    {
+                        item.LaunchImageDownload().Forget();
+                    }
                 }
             }
         }
@@ -123,16 +123,9 @@ namespace UserInterface
         #endregion
 
         #region Event Handlers
-        private void ImageSelectedButNotLoaded(string url)
+        private void ImageSelected(string url, string name, Sprite sprite)
         {
-            _selectedImageData.SendImageData(url: url);
-
-            SceneManager.LoadScene((int)Scenes.View);
-        }
-
-        private void ImageSelectedAndLoaded(Sprite sprite)
-        {
-            _selectedImageData.SendImageData(sprite);
+            _selectedImageData.SendImageData(name, url, sprite);
 
             SceneManager.LoadScene((int)Scenes.View);
         }
